@@ -1,0 +1,13 @@
+﻿"Symbol";"Value";"Unit";
+"TraceParts.PartNumber";"90-27102023-071501";"";
+"REFERENCE";"1809108";"";
+"TraceParts.PartTitle";"Roll-in T slot nut with spring loaded ba";"";
+"SUPPLIER";"RS PRO";"";
+"url";"https://uk.rs-online.com/web/p/connecting-components/1809108//?cm_mmc=aff-_-uk-_-traceparts-_-1809108";"";
+"SUPPLIER_NAME";"RS Components";"";
+"rs_stock_number";"1809108";"";
+"DESIGN";"Roll-in T slot nut with spring loaded ba";"";
+"TraceParts.InstanceId";"90-27102023-0715012N3XX9WWY2MK673V115V3T3RA";"";
+"TRACEPARTS";"TRACEPARTS";"";
+"TraceParts.PartLanguage";"en";"";
+"TraceParts.PartVersion";"1.1.4";"";

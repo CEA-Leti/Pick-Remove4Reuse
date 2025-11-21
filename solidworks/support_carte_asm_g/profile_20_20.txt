@@ -1,0 +1,13 @@
+﻿"Symbol";"Value";"Unit";
+"TraceParts.PartNumber";"90-11062024-074012";"";
+"REFERENCE";"8508470";"";
+"rs_stock_number";"8508470";"";
+"TraceParts.PartTitle";"Profile 5, 20x20, Silver, 4 groove, 2m";"";
+"url";"https://uk.rs-online.com/web/p/tubing-and-profile-struts/8508470//?cm_mmc=aff-_-uk-_-traceparts-_-8508470";"";
+"SUPPLIER_NAME";"RS Components";"";
+"SUPPLIER";"RS PRO";"";
+"DESIGN";"Profile 5, 20x20, Silver, 4 groove, 2m";"";
+"TraceParts.InstanceId";"90-11062024-0740122N3XX9WWY2MK673V115V3T3RA";"";
+"TRACEPARTS";"TRACEPARTS";"";
+"TraceParts.PartLanguage";"en";"";
+"TraceParts.PartVersion";"1.0.0";"";
