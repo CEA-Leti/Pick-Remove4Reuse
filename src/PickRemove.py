@@ -14,10 +14,10 @@ import pyfirmata
 def attendre_fin_mouvement():
     command='M400 \n'
     ser.write(command.encode())
-    print(f">> {command.strip()}")
+    #print(f">> {command.strip()}")
     while True:
         line = ser.readline().decode().strip()
-        print(f">> {line}")
+        #print(f">> {line}")
         if "ok" in line.lower():
             break
 
@@ -28,7 +28,7 @@ def attendre_fin_mouvement():
 def attendre_fin_mouv_recup_ec():
     command='M400 \n'
     ser.write(command.encode())
-    print(f">> {command.strip()}")
+    #print(f">> {command.strip()}")
     end=0
     try:
         while end==0:
@@ -36,11 +36,11 @@ def attendre_fin_mouv_recup_ec():
             print(f">> {line}")
             value = endstop_pin.read()  # Renvoie True, False ou None
             if value is False:
-                print("⚪ Capteur LIBRE (non pressé)")
+                print("Capteur LIBRE (non pressé)")
                 end=1
                 return time.time()
             else:
-                print("⚠️ En attente du signal...")
+                print("En attente du signal...")
                 time.sleep(0.2)
     except KeyboardInterrupt:
         print("Fin du programme.")
@@ -51,15 +51,15 @@ def attendre_fin_mouv_recup_ec():
 def envoi_commande(commande,opt):
     command=commande+' \n'
     ser.write(command.encode())
-    print(f">> {command.strip()}")
+    #print(f">> {command.strip()}")
     time.sleep(1)  # Pause entre les commandes (ajustable)
     
     
     # Lecture de la réponse éventuelle de l'imprimante
     while True:
         response = ser.readline().decode().strip()
-        if response:
-            print(f"<< boucle1 {response}")
+        # if response:
+        #     print(f"<< boucle1 {response}")
         if "ok" in response.lower():
             if "G28" in commande:
                 attendre_fin_mouvement()
@@ -120,7 +120,7 @@ def open_file():
                       "C3                         45.0                 10.2\n"
                       "U1                         30.0                 35.0\n"
                       "(avec la case Nom composant correspondant à la cellule excel A1)")
-    file_path = filedialog.askopenfilename(title="Ouvrir un fichier", filetypes=[("Fichiers excel", "*.xlsx")])
+    file_path = filedialog.askopenfilename(title="Ouvrir un fichier", filetypes=[("Fichiers excel", "*.xls")])
     print(file_path)
     try:
         df = pd.read_excel(file_path)
@@ -167,7 +167,7 @@ print ("Fichier excel récupéré")
 portImprimante, portArduino,baudrate, pin_finDeCourse, pin_buzzer, pin_relaiCycleChauffe, pos_x_max_depose_ec, pos_x_min_depose_ec, espacement_ec_depose_x, pos_y_max_depose_ec, pos_y_min_depose_ec,espacement_ec_depose_y,vitesse_deplacement,hauteur_secu_z, delta_z_posDesassemblage=recup_donnee_config()
 
 # Initialisation de l'Arduino avec pyFirmata pour communiquer en port série depuis le script Python
-board = pyfirmata.ArduinoMega(portImprimante)
+board = pyfirmata.ArduinoMega(portArduino)
 
 # Activation du reporting (lecture en entrée)
 it = pyfirmata.util.Iterator(board)
@@ -183,8 +183,8 @@ relaiCycleChauffe_pin = board.get_pin(f"d:{pin_relaiCycleChauffe}:o")
 pos_y_ligne_depose_ec=pos_y_min_depose_ec
 pos_x_colonne_depose_ec=pos_x_min_depose_ec
 try:
-    with serial.Serial(portArduino, baudrate, timeout=1) as ser:
-        print(f"Connexion à {portArduino} établie")
+    with serial.Serial(portImprimante, baudrate, timeout=1) as ser:
+        print(f"Connexion à {portImprimante} établie")
         #print(ser)
 
         # Attente pour que l'imprimante soit prête
@@ -204,9 +204,9 @@ try:
         
         # Initialisation de la position de référence du premier composant de la récupération
         envoi_commande('M117 Set position EC 1',1)
-        popUp_information("Afin de callibrer l'iprimante, déplacez vous au-dessus du 1er composant à récupérer \n"
-                          "Pour vous déplacez, appuyer sur la mollette > prepare > Move axis \n \n"
-                          "Appuyer sur ok une fois le dépacement effectué \n")
+        popUp_information("Afin de calibrer l'imprimante, déplacez vous au-dessus du 1er composant à récupérer \n"
+                          "Pour vous déplacer, appuyer sur la molette > prepare > Move axis \n \n"
+                          "Appuyer sur ok une fois le déplacement effectué \n")
         posC1_Rsyst=pos_actuel()
         #popUp_information("Le premier composant se situe en position :"+posC1_Rsyst+"si votre positionement ne vous convient pas réajuster puis appuyé sur ok")
         
@@ -231,7 +231,7 @@ try:
             
             #Mise en contact du composant avec la buse aspirante
             start = time.time()
-            end=envoi_commande('G1 Z1 F'+str(vitesse_deplacement),0)
+            end=envoi_commande('G1 Z12 F'+str(vitesse_deplacement),0)
             
             #Début du cycle de chauffe (vaccum on) (On envoi un signal au relai permettant le déclenchement du cycle de chauffe)
             print("5V")
@@ -245,29 +245,20 @@ try:
             relaiCycleChauffe_pin.write(False)
             time.sleep(10)
             
-            #Calcul du temps écoulé entre la position du pistolet à la hauteur de sécu et 
-            #le contact du pistolet avec le composant. Objectif : déduire la hauteur 
-            #du composant cible afin d'y retourner pour charger le ressort participant au désassemblage 
-            elapsed = end - start
-            print(elapsed)
-            dist=float(elapsed)*30/6.36
-            #Déplacement à la position adéquate afin de charger le ressort. La constante 'delta_z_posDesassemblage' 
-            # est modulable en fonction du chargement ciblé pour le ressort et du positionnement du capteur de fin de course.
-            envoi_commande('G1 Z'+str(hauteur_secu_z-dist+delta_z_posDesassemblage)+' F'+str(3000),1)
-            
-            attendre_fin_mouvement()
-            
+            #Déplacement à la position adéquate afin de charger le ressort. (enlevé (trop haut, plus de ressort))
+            #envoi_commande('G1 Z12 F3000',1)
+                       
             #Attente pour désassemblage
             # === Détection front montant ===
             previous_state = True  # High
 
-            print("Détection du signal électrique permettant l'activation du buzzer et signalant le changement d'état du cycle de chauffe")
-            detection_cycle=0;
+            print("Détection changement d'état du cycle de chauffe (via buzzer)")
+            detection_cycle=0
             try:
                 while detection_cycle < 3:
                     value = input_pin.read()
                     if value is True and previous_state is False:
-                        print("Front montant détecté !")
+                        #print("Front montant détecté !")
                         detection_cycle=detection_cycle+1
                         time.sleep(5) #attente de la fin du bip
                     previous_state = value
@@ -275,6 +266,8 @@ try:
             except KeyboardInterrupt:
                 print("Arrêt du programme.")
                 board.exit()
+
+            time.sleep(0.2) # remplace détection de cycles de chauffe Hakko
             
             #Désassemblage
             envoi_commande('G1 Z'+str(hauteur_secu_z)+' F'+str(vitesse_deplacement),1)
